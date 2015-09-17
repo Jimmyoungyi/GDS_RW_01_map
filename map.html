@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>map</title>
+	<style>
+		body{
+			margin: 0;
+			padding: 0;
+		}
+		#mapb{
+			width: 100vw;
+			height: 100vh;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+		#canvas{
+			position: absolute;
+			top: 0;
+			left: 0;
+			opacity: 0.3;
+			overflow:scroll;
+		}
+		#mapf{
+			width: 100vw;
+			height: 100vh;
+			position: absolute;
+			top: 0;
+			left: 0;
+			opacity: 0;
+		}	
+	</style>
+</head>
+<body>
+	<div id="mapb"></div>
+	<canvas id="canvas"></canvas>
+	<div id="mapf"></div>
+</body>
+<script src="http://maps.googleapis.com/maps/api/js"></script>
+<script src="js/jquery-2.1.4.min.js"></script>
+<script>
+var mapProp;
+var map;
+var centerX = -122.3919566;
+var centerY = 37.7968746;
+var center = new google.maps.LatLng(centerY,centerX);
+var zoom = 10;
+function initialize() {
+	mapProp = {
+		center:new google.maps.LatLng(37.7968746,-122.3919566),
+    	zoom:10,
+    	mapTypeId:google.maps.MapTypeId.ROADMAP,
+    	scrollwheel: false,
+    	disableDoubleClickZoom: true
+	};
+	mapb=new google.maps.Map(document.getElementById("mapb"),mapProp);
+	mapf=new google.maps.Map(document.getElementById("mapf"),mapProp);
+}
+</script>
+<script>
+	var rectX;
+	var rectY;
+	var rectW = 50;
+	var rectH = 50;
+	var c = document.getElementById("canvas");
+	c.width  = window.innerWidth;
+ 	c.height = window.innerHeight;
+ 	rectX = c.width/2;
+ 	rectY = c.height/2;
+	var ctx = c.getContext("2d");
+	ctx.fillStyle = "#FF0000";
+	ctx.fillRect(rectX,rectY,rectW,rectH);
+	initialize();
+</script>
+<script>
+	$(window).resize(function(){
+		c.width  = window.innerWidth;
+ 		c.height = window.innerHeight;
+ 		ctx.fillStyle = "#FF0000";
+		ctx.fillRect(rectX,rectY,rectW,rectH);
+	})
+</script>
+<script>
+	setInterval(function(){
+		center = mapf.getCenter();
+		mapb.setCenter(center);
+		if(zoom != mapf.getZoom()){
+			rectX = (rectX - c.width / 2) * Math.pow(2,(mapf.getZoom() - zoom)) + c.width / 2;
+			rectY = (rectY - c.height / 2) * Math.pow(2,(mapf.getZoom() - zoom)) + c.height / 2;
+			console.log(rectX,rectY);
+			rectW = rectW*Math.pow(2,(mapf.getZoom() - zoom));
+			rectH = rectH*Math.pow(2,(mapf.getZoom() - zoom));
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.fillRect(rectX,rectY,rectW,rectH);
+			zoom = mapf.getZoom();
+			mapb.setZoom(zoom);
+
+		}
+	},10)
+</script>
+<script>
+	var downX;
+	var downY;
+	var ifdown = false;
+	$("#mapf").mousedown(function(e){
+		downX = e.pageX;
+		downY = e.pageY;
+		ifdown = true;
+		console.log("down");
+	})
+	$("#mapf").mousemove(function(e){
+		if(ifdown){
+			rectX -= downX - e.pageX;
+			rectY -= downY - e.pageY;
+			centerX += (downX - e.pageX)/725;
+			centerY -= (downY - e.pageY)/925;
+			downX = e.pageX;
+			downY = e.pageY;
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.fillRect(rectX,rectY,rectW,rectH);
+			console.log("move");
+		}
+	})
+	$("#mapf").mouseup(function(e){
+		console.log("up")
+		downX = e.pageX;
+		downY = e.pageY;
+		ifdown = false;
+	})
+</script>
+</html>
